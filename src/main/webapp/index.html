@@ -7,11 +7,13 @@
 
     <script type="text/javascript" src="js/angular.min.js"></script>
     <script type="text/javascript" src="js/angular-resource.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/scripts.js"></script>
 </head>
 
-<body>
-    <h1>Welcome!</h1>
+<body ng-app="biotech">
+
+    <input type="text" ng-model="name">  <br />
+    <h1>Welcome {{name}}!</h1>
 </body>
 
 </html>
