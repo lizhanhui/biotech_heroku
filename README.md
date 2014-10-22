@@ -25,6 +25,29 @@ $ git push heroku master
 $ heroku open
 ```
 
+## Scale Web
+```sh
+heroku ps:scale web=1
+```
+
+## Logs
+
+```sh
+heroku logs --tail
+```
+
+## Addons
+```sh
+heroku addons:add papertrail
+heroku addons
+heroku addons:open papertrail
+```
+## Remote Access
+
+```sh
+heroku run bash
+```
+
 ## Documentation
 
 For more information about using Java on Heroku, see these Dev Center articles:
