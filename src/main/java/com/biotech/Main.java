@@ -1,35 +1,40 @@
 package com.biotech;
 
+import com.biotech.servlet.MainServlet;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+/**
+ * Entry of this application.
+ */
+public class Main {
 
-public class Main extends HttpServlet {
+    /**
+     * Entry of the application.
+     * @param args arguments.
+     */
+    public static void main(String[] args) {
+        try {
+            Server server = new Server(Integer.valueOf(System.getenv("PORT")));
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
+            ContextHandlerCollection contextHandlerCollection = new ContextHandlerCollection();
 
-        if (req.getRequestURI().endsWith("/db")) {
-            Helper.showDatabase(req, resp);
-        } else {
-            Helper.showHome(req, resp);
+            ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+            servletContextHandler.setContextPath("/");
+            servletContextHandler.addServlet(new ServletHolder(new MainServlet()), "/*");
+
+
+            contextHandlerCollection.setHandlers(new Handler[] {servletContextHandler});
+            server.setHandler(contextHandlerCollection);
+            server.start();
+            server.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        Server server = new Server(Integer.valueOf(System.getenv("PORT")));
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        server.setHandler(context);
-        context.addServlet(new ServletHolder(new Main()), "/*");
-        server.start();
-        server.join();
     }
 }

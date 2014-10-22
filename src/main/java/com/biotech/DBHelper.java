@@ -8,9 +8,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-public final class Helper {
+public final class DBHelper {
 
     private static DruidDataSource DATA_SOURCE;
 
@@ -20,7 +23,7 @@ public final class Helper {
             return DATA_SOURCE;
         }
 
-        synchronized (Helper.class) {
+        synchronized (DBHelper.class) {
             try {
                 DATA_SOURCE = new DruidDataSource();
                 DATA_SOURCE.setUrl(getDatabaseURL());
@@ -54,7 +57,7 @@ public final class Helper {
         return DATA_SOURCE;
     }
 
-    private static String getDatabaseURL() throws URISyntaxException{
+    private static String getDatabaseURL() throws URISyntaxException {
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
         return "jdbc:postgresql://" + dbUri.getHost() + dbUri.getPath();
     }
@@ -65,26 +68,14 @@ public final class Helper {
     }
 
     public static Connection getConnection() throws SQLException {
-//        URI dbUri = new URI(System.getenv("DATABASE_URL"));
-//
-//        String username = dbUri.getUserInfo().split(":")[0];
-//        String password = dbUri.getUserInfo().split(":")[1];
-//        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + dbUri.getPath();
-//
-//        return DriverManager.getConnection(dbUrl, username, password);
-
         return getDataSource().getConnection();
-    }
-
-    public static void showHome(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        resp.getWriter().print("Hello from Java!");
     }
 
     public static void showDatabase(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        Connection connection = null;
         try {
-            Connection connection = Helper.getConnection();
+            connection = DBHelper.getConnection();
 
             Statement stmt = connection.createStatement();
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
@@ -99,6 +90,14 @@ public final class Helper {
             resp.getWriter().print(out);
         } catch (Exception e) {
             resp.getWriter().print("There was an error: " + e.getMessage());
+        } finally {
+            if (null != connection) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
