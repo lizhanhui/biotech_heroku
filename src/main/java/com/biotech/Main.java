@@ -31,7 +31,7 @@ public class Main {
 
             ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
             servletContextHandler.setContextPath("/");
-            servletContextHandler.addServlet(new ServletHolder(new MainServlet()), "/*");
+            servletContextHandler.addServlet(new ServletHolder(new MainServlet()), "/");
 
 
             contextHandlerCollection.setHandlers(new Handler[] {servletContextHandler, resourceHandler});
