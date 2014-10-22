@@ -1,5 +1,7 @@
 package com.biotech;
 
+import com.alibaba.druid.pool.DruidDataSource;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,14 +12,68 @@ import java.sql.*;
 
 public final class Helper {
 
-    public static Connection getConnection() throws URISyntaxException, SQLException {
+    private static DruidDataSource DATA_SOURCE;
+
+    public static DruidDataSource getDataSource() throws SQLException {
+
+        if (null != DATA_SOURCE) {
+            return DATA_SOURCE;
+        }
+
+        synchronized (Helper.class) {
+            try {
+                DATA_SOURCE = new DruidDataSource();
+                DATA_SOURCE.setUrl(getDatabaseURL());
+
+                String[] confidential = getDatabaseAccount();
+                DATA_SOURCE.setUsername(confidential[0]);
+                DATA_SOURCE.setPassword(confidential[1]);
+
+                DATA_SOURCE.setInitialSize(1);
+                DATA_SOURCE.setMinIdle(1);
+                DATA_SOURCE.setMaxActive(20);
+                DATA_SOURCE.setMaxWait(60000);
+
+                DATA_SOURCE.setTimeBetweenEvictionRunsMillis(60000);
+                DATA_SOURCE.setMinEvictableIdleTimeMillis(300000);
+
+                DATA_SOURCE.setValidationQuery("SELECT 1");
+                DATA_SOURCE.setTestWhileIdle(true);
+                DATA_SOURCE.setTestOnBorrow(false);
+                DATA_SOURCE.setTestOnReturn(false);
+
+                DATA_SOURCE.setPoolPreparedStatements(true);
+                DATA_SOURCE.setMaxPoolPreparedStatementPerConnectionSize(20);
+
+                DATA_SOURCE.setFilters("stat");
+            } catch (URISyntaxException e) {
+                throw new SQLException("Failed to get Database URL string", e);
+            }
+        }
+
+        return DATA_SOURCE;
+    }
+
+    private static String getDatabaseURL() throws URISyntaxException{
         URI dbUri = new URI(System.getenv("DATABASE_URL"));
+        return "jdbc:postgresql://" + dbUri.getHost() + dbUri.getPath();
+    }
 
-        String username = dbUri.getUserInfo().split(":")[0];
-        String password = dbUri.getUserInfo().split(":")[1];
-        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + dbUri.getPath();
+    private static String[] getDatabaseAccount() throws URISyntaxException {
+        URI dbUri = new URI(System.getenv("DATABASE_URL"));
+        return dbUri.getUserInfo().split(":");
+    }
 
-        return DriverManager.getConnection(dbUrl, username, password);
+    public static Connection getConnection() throws SQLException {
+//        URI dbUri = new URI(System.getenv("DATABASE_URL"));
+//
+//        String username = dbUri.getUserInfo().split(":")[0];
+//        String password = dbUri.getUserInfo().split(":")[1];
+//        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + dbUri.getPath();
+//
+//        return DriverManager.getConnection(dbUrl, username, password);
+
+        return getDataSource().getConnection();
     }
 
     public static void showHome(HttpServletRequest req, HttpServletResponse resp)
